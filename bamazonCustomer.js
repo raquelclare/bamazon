@@ -31,61 +31,65 @@ function displayInventory() {
 }
 
 function order() {
-    inquirer.prompt([
-        {
+    var query = "SELECT * FROM products";
 
-            type: "input", 
-            message: "What is the ID of the product you would like to buy?",
-            name: "orderID",
-            validate: function(value) {
-            if (isNaN(value) === false) {
-                return true;
-            }
-            return false;
-            }
-    
-        },
-        {
-            type: "input",
-            message: "How many of this product did you want to purchase?",
-            name: "orderAmt",
-            alidate: function(value) {
-            if (isNaN(value) === false) {
-                return true;
-            }
-            return false;
-            }
+    connection.query(query, function(err, res) {
 
-        }
-    ]).then(function(productChoice) {
-        var query = "UPDATE stock_quantity FROM products WHERE ?";
-        var item = productChoice.orderID;
-        var quantity = productChoice.orderAmt;
-
-        console.log("Updating inventory...\n");
-
-        connection.query(query, { item_id: item }, function(err, res) {
+        inquirer.prompt([
             {
-                stock_quantity: stock_quantity - quantity
+
+                type: "input", 
+                message: "What is the ID of the product you would like to buy?",
+                name: "orderID",
+                validate: function(value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+        
+            },
+            {
+
+                type: "input",
+                message: "How many of this product did you want to purchase?",
+                name: "orderAmt",
+                validate: function(value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+
+            }
+        ]).then(function(productChoice) {
+            var query2 = "UPDATE products SET ? WHERE ?";
+            
+            // Variables from choice made
+            var item = productChoice.orderID;
+            var itemIndex = (productChoice.orderID - 1);
+            var quantity = productChoice.orderAmt;
+
+            // Variables from database
+            var itemQuantityDB = (res[itemIndex].stock_quantity);
+
+            if (itemQuantityDB >= quantity) {
+
+                console.log("Updating inventory...\n");
+
+                connection.query(query2, 
+                    [
+                        { 
+                            stock_quantity: itemQuantityDB - quantity
+                        },
+                        {
+                            item_id: item
+                        }
+                    ], 
+                function(err, res) {
+                    console.log("Thank you for purchasing!");
+                });
             }
         });
-        //     [
-        //         {
-        //             stock_quantity: stock_quantity - quantity
-        //         },
-        //         {
-        //             item_id: item
-        //         }
-        //     ], 
-        //     function(err, res) {
-        //         console.log(res.affectedRows + " product purchased!\n");
-        //     }
-        // );
-        // connection.query(query, [productChoice.orderID, productChoice.orderAmt], function(err, res) {
-        //     console.log(productChoice.orderID + " /// " + productChoice.orderAmt);
-        //     for (var i = 0; i < res.length , i++) {
-        //         console.log(res[i].item_id + " /// " + res[i].stock_quantity);
-        //     }
-        // });
-    });
+    });    
 }
