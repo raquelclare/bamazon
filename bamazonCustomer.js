@@ -72,6 +72,10 @@ function order() {
 
             // Variables from database
             var itemQuantityDB = (res[itemIndex].stock_quantity);
+            var itemPrice = (res[itemIndex].price);
+
+            // Variables for cost
+            var cost = (itemPrice * quantity);
 
             if (itemQuantityDB >= quantity) {
 
@@ -87,8 +91,10 @@ function order() {
                         }
                     ], 
                 function(err, res) {
-                    console.log("Thank you for purchasing!");
+                    console.log("Thank you for purchasing! Your purchase total is $" + cost);
                 });
+            }else {
+                console.log("Insufficient Quantity! Our apologies but there are only " + itemQuantityDB + " units left for this item.");
             }
         });
     });    
